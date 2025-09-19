@@ -14,7 +14,7 @@ def chat_tab():
     # Chat header
     st.markdown(f"""
     <div class="chat-header">
-        <h1>Memory-Enhanced Chat Assistant</h1>
+        <h1>CBT based therapist v1</h1>
         <p>Chatting as: <strong>{st.session_state.username}</strong></p>
     </div>
     """, unsafe_allow_html=True)
