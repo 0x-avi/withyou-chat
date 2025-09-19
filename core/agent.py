@@ -29,7 +29,7 @@ class MemoryReActAgent(dspy.Module):
         self.react = dspy.ReAct(
             signature=MemoryQA,
             tools=self.tools,
-            max_iters=3  # Reduced to prevent multiple calls
+            max_iters=2  # Reduced to prevent multiple calls
         )
 
     def forward(self, user_input: str, user_id: str = "default_user"):

@@ -10,9 +10,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
-# Configure environment (you should use st.secrets in production)
-if "OPENAI_API_KEY" not in os.environ:
-    os.environ["OPENAI_API_KEY"] = st.secrets.get("OPENAI_API_KEY", "your-api-key-here")
 
 def main():
     """Main application."""

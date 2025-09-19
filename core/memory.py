@@ -3,13 +3,13 @@ from mem0 import Memory
 class MemoryTools:
     """Tools for interacting with the Mem0 memory system."""
 
-    def __init__(self, memory: Memory, user: str = "guest"):
+    def __init__(self, memory: Memory, user_id: str = "guest"):
         self.memory = memory
-        self.user = user  # correctly assign
+        self.user_id = user_id
 
     def store_memory(self, content: str, user_id: str = None) -> str:
         """Store information in memory."""
-        user_id = user_id or self.user
+        user_id = user_id or self.user_id
         try:
             self.memory.add(content, user_id=user_id)
             return f"Stored memory: {content}"
@@ -18,7 +18,7 @@ class MemoryTools:
 
     def search_memories(self, query: str, user_id: str = None, limit: int = 5) -> str:
         """Search for relevant memories."""
-        user_id = user_id or self.user
+        user_id = user_id or self.user_id
         try:
             results = self.memory.search(query, user_id=user_id, limit=limit)
             if not results or not results.get("results"):
@@ -33,7 +33,7 @@ class MemoryTools:
 
     def get_all_memories(self, user_id: str = None) -> str:
         """Get all memories for a user."""
-        user_id = user_id or self.user
+        user_id = user_id or self.user_id
         try:
             results = self.memory.get_all(user_id=user_id)
             if not results or not results.get("results"):

@@ -10,7 +10,7 @@ def initialize_memory():
         "llm": {
             "provider": "openai",
             "config": {
-                "model": "gpt-4o-mini",
+                "model": "gpt-5-nano-2025-08-07",
             }
         },
         "embedder": {
@@ -27,7 +27,7 @@ def initialize_agent():
     """Initialize the memory agent."""
     try:
         # Configure DSPy
-        lm = dspy.LM(model='openai/gpt-4o-mini')
+        lm = dspy.LM('openai/gpt-5', temperature=1.0, max_tokens=16000)
         dspy.configure(lm=lm)
         
         # Initialize memory system
