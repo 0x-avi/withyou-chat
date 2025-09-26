@@ -1,6 +1,7 @@
 import streamlit as st
 import asyncio
 import os
+import threading
 from dotenv import load_dotenv
 from mem0 import AsyncMemory
 from Agent import Therapist
@@ -9,6 +10,27 @@ import dspy
 
 # Load environment variables
 load_dotenv()
+
+# Thread-local storage for DSPy configuration
+thread_local_data = threading.local()
+
+def configure_dspy_for_thread():
+    """Configure DSPy for the current thread if not already configured."""
+    if not hasattr(thread_local_data, 'dspy_configured') or not thread_local_data.dspy_configured:
+        try:
+            lm = dspy.LM('openai/gpt-5-nano-2025-08-07', temperature=1.0, max_tokens=16000)
+            dspy.configure(lm=lm)
+            thread_local_data.dspy_configured = True
+        except Exception as e:
+            # If configuration fails due to threading issues, try to reset and configure
+            try:
+                dspy.settings = dspy.settings.__class__()  # Reset settings
+                lm = dspy.LM('openai/gpt-5-nano-2025-08-07', temperature=1.0, max_tokens=16000)
+                dspy.configure(lm=lm)
+                thread_local_data.dspy_configured = True
+            except Exception as e2:
+                # st.warning(f"DSPy configuration issue: {e2}. Some features may be limited.")
+                thread_local_data.dspy_configured = False
 
 # Set page config
 st.set_page_config(
@@ -35,9 +57,6 @@ if 'current_user' not in st.session_state:
 
 if 'all_memories' not in st.session_state:
     st.session_state.all_memories = []
-
-if 'dspy_configured' not in st.session_state:
-    st.session_state.dspy_configured = False
 
 async def initialize_therapist():
     """Initialize the therapist and memory tools."""
@@ -70,11 +89,8 @@ async def initialize_therapist():
     mem_tools = MemOps(memory)
     mem_tools.set_user_id(st.session_state.current_user)
     
-    # Configure DSPy only once per session
-    if not st.session_state.dspy_configured:
-        lm = dspy.LM('openai/gpt-5-nano-2025-08-07', temperature=1.0, max_tokens=16000)
-        dspy.configure(lm=lm)
-        st.session_state.dspy_configured = True
+    # Configure DSPy for this thread
+    configure_dspy_for_thread()
     
     therapist = Therapist(memory=memory)
     
@@ -82,6 +98,9 @@ async def initialize_therapist():
 
 async def get_chat_response(user_query, therapist, mem_tools):
     """Get response from the therapist without adding memories yet."""
+    # Ensure DSPy is configured for this thread
+    configure_dspy_for_thread()
+    
     memories = await mem_tools.search_for_memories(user_query)
     answer = await therapist.aforward(f'{memories}\n{user_query}')
     return answer
@@ -129,7 +148,6 @@ with st.sidebar:
             st.session_state.current_user = new_username.strip()
             st.session_state.initialized = False  # Re-initialize with new user
             st.session_state.messages = []  # Clear chat history
-            # Don't reset dspy_configured - keep it configured
             st.success(f"Username set to: {st.session_state.current_user}")
             st.rerun()
     
